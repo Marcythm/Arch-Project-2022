@@ -1,0 +1,39 @@
+# Heda Chen 520021910863
+.pos 0
+init:
+    irmovl stack, %esp      # initialize %esp
+    call main
+    halt
+
+.align 4                    # data section
+ele1:
+    .long 0x00a
+    .long ele2
+ele2:
+    .long 0x0b0
+    .long ele3
+ele3:
+    .long 0xc00
+    .long 0
+
+main:
+    irmovl ele1, %edi       # following the calling conventions, use %rdi
+    call rsum_list          # (here %edi) to store the first argument
+    ret
+rsum_list:
+    andl    %edi, %edi      # check if %edi is 0 (the end of the list): `if (!ls)`
+    je      L3              # if so, terminate the recursion: `return 0`
+    pushl   %edi            # save the pointer of current element
+    mrmovl  4(%edi), %edi   # move pointer to the next element
+    call    rsum_list       # calculate the sum of the list starting from the next element
+    popl    %edi            # restore the pointer of current element
+    mrmovl  (%edi), %ebx    # load the value of current element: `tmp = *(ls->val)` (because
+                            # in Y86 the addition can only be performed between registers)
+    addl    %ebx, %eax      # add the value of current element to get the sum of current list
+    ret
+L3:
+    irmovl  0, %eax         # when terminate the recursion, set counter to 0: `sum = 0`
+    ret
+
+.pos 0x100
+stack:
