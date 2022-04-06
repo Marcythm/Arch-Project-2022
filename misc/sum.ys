@@ -1,0 +1,36 @@
+# Heda Chen 520021910863
+.pos 0
+init:
+    irmovl stack, %esp
+    call main
+    halt
+
+.align 4
+ele1:
+    .long 0x00a
+    .long ele2
+ele2:
+    .long 0x0b0
+    .long ele3
+ele3:
+    .long 0xc00
+    .long 0
+
+main:
+    irmovl ele1, %edi
+    call sum_list
+    ret
+sum_list:
+    irmovl  0, %eax
+    jmp     L2
+L3:
+    mrmovl  (%edi), %ebx
+    addl    %ebx, %eax
+    mrmovl  4(%edi), %edi
+L2:
+    andl    %edi, %edi
+    jne     L3
+    ret
+
+.pos 0x100
+stack:
