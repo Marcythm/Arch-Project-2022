@@ -1,11 +1,11 @@
 # Heda Chen 520021910863
 .pos 0
 init:
-    irmovl stack, %esp
+    irmovl stack, %esp      # initialize %esp
     call main
     halt
 
-.align 4
+.align 4                    # data section
 ele1:
     .long 0x00a
     .long ele2
@@ -17,19 +17,20 @@ ele3:
     .long 0
 
 main:
-    irmovl ele1, %edi
-    call sum_list
+    irmovl ele1, %edi       # following the calling conventions, use %rdi
+    call sum_list           # (here %edi) to store the first argument
     ret
 sum_list:
-    irmovl  0, %eax
-    jmp     L2
+    irmovl  0, %eax         # initialize %eax: `sum = 0`
+    jmp     check_condition # jump into loop, and check loop condition first: `while (ls)`
 L3:
-    mrmovl  (%edi), %ebx
-    addl    %ebx, %eax
-    mrmovl  4(%edi), %edi
-L2:
-    andl    %edi, %edi
-    jne     L3
+    mrmovl  (%edi), %ebx    # load the value of current element: `tmp = *(ls->val)` (because
+                            # in Y86 the addition can only be performed between registers)
+    addl    %ebx, %eax      # add the value to `sum`: `sum += tmp`
+    mrmovl  4(%edi), %edi   # move the pointer to the next element: `ls = ls->next`
+check_condition:
+    andl    %edi, %edi      # check if %edi is 0: `ls == NULL`
+    jne     L3              # if not, jump to L3
     ret
 
 .pos 0x100
