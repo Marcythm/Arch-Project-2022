@@ -1,0 +1,43 @@
+# Heda Chen 520021910863
+.pos 0
+init:
+    irmovl stack, %esp      # initialize %esp
+    call main
+    halt
+
+.align 4                    # data section
+src:                        # Source block
+  .long 0x00a
+  .long 0x0b0
+  .long 0xc00
+dest:                       # Destination block
+  .long 0x111
+  .long 0x222
+  .long 0x333
+
+
+main:
+    irmovl  src, %edi       # following the calling conventions, use %rdi,
+    irmovl  dest, %esi      # %rsi and %rdx (here %edi, %esi and %edx) to
+    irmovl  3, %edx         # store the first three arguments
+    call    copy_block
+    ret
+copy_block:
+    irmovl  0, %eax         # initialize checksum: `result = 0`
+    jmp     check_condition # jump into loop, and check loop condition first: `while (ls)`
+L3:
+    mrmovl  (%edi), %ebx    # load current value in source block: `val = *src`
+    rmmovl  %ebx, (%esi)    # store the value into dest block: `*dest = val`
+    xorl    %ebx, %eax      # add current value into checksum: `result ^= val`
+    irmovl  4, %ecx         # use %ecx as a constant 4
+    addl    %ecx, %edi      # move to next value in source block: `src++`
+    addl    %ecx, %esi      # move to next value in dest block: `dest++`
+    irmovl  1, %ecx         # use %ecx as a constant 1
+    subl    %ecx, %edx      # decrease `len`: `len--`
+check_condition:
+    andl    %edx, %edx      # check if `len` is greater than zero: `while (len > 0)`
+    jg      L3              # if not, continue to loop
+    ret
+
+.pos 0x100
+stack:
