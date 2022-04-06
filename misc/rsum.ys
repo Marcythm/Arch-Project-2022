@@ -1,8 +1,9 @@
 # Heda Chen 520021910863
+
 .pos 0
 init:
-    irmovl stack, %esp      # initialize %esp
-    call main
+    irmovl  stack, %esp     # initialize %esp
+    call    main
     halt
 
 .align 4                    # data section
@@ -17,11 +18,11 @@ ele3:
     .long 0
 
 main:
-    irmovl ele1, %edi       # following the calling conventions, use %rdi
-    call rsum_list          # (here %edi) to store the first argument
+    irmovl  ele1, %edi      # following the calling conventions, use %rdi
+    call    rsum_list       # (here %edi) to store the first argument
     ret
 rsum_list:
-    andl    %edi, %edi      # check if %edi is 0 (the end of the list): `if (!ls)`
+    andl    %edi, %edi      # check if current pointer is 0 (the end of the list): `if (!ls)`
     je      L3              # if so, terminate the recursion: `return 0`
     pushl   %edi            # save the pointer of current element
     mrmovl  4(%edi), %edi   # move pointer to the next element
