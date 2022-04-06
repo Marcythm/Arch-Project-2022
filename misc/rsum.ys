@@ -28,9 +28,9 @@ rsum_list:
     mrmovl  4(%edi), %edi   # move pointer to the next element
     call    rsum_list       # calculate the sum of the list starting from the next element
     popl    %edi            # restore the pointer of current element
-    mrmovl  (%edi), %ebx    # load the value of current element: `tmp = *(ls->val)` (because
+    mrmovl  (%edi), %ecx    # load the value of current element: `tmp = *(ls->val)` (because
                             # in Y86 the addition can only be performed between registers)
-    addl    %ebx, %eax      # add the value of current element to get the sum of current list
+    addl    %ecx, %eax      # add the value of current element to get the sum of current list
     ret
 L3:
     irmovl  0, %eax         # when terminate the recursion, set counter to 0: `sum = 0`
