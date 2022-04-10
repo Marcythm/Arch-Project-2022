@@ -15,30 +15,116 @@ ncopy:	pushl %ebp		# Save old frame pointer
 	pushl %esi		# Save callee-save regs
 	pushl %ebx
 	pushl %edi
-	mrmovl 8(%ebp),%ebx	# src
+	mrmovl 8(%ebp),%ebx	  # src
 	mrmovl 16(%ebp),%edx	# len
 	mrmovl 12(%ebp),%ecx	# dst
 
 ##################################################################
 # You can modify this portion
-	# Loop header
 	xorl %eax,%eax		# count = 0;
-	andl %edx,%edx		# len <= 0?
-	jle Done		# if so, goto Done:
+	iaddl -6, %edx		# len <= 6?
+	jle S06						# if so, goto S06
 
-Loop:	mrmovl (%ebx), %esi	# read val from src...
-	rmmovl %esi, (%ecx)	# ...and store it to dst
-	andl %esi, %esi		# val <= 0?
-	jle Npos		# if so, goto Npos:
-	irmovl $1, %edi
-	addl %edi, %eax		# count++
-Npos:	irmovl $1, %edi
-	subl %edi, %edx		# len--
-	irmovl $4, %edi
-	addl %edi, %ebx		# src++
-	addl %edi, %ecx		# dst++
-	andl %edx,%edx		# len > 0?
-	jg Loop			# if so, goto Loop:
+L0:
+	mrmovl (%ebx), %esi 		# tmp0 = src[0]
+	mrmovl 4(%ebx), %edi    # tmp1 = src[1]
+	andl %esi, %esi         # if tmp0 <= 0
+	rmmovl %esi, (%ecx)     # dst[0] = tmp0
+	jle L1                  # skip increasing counter
+	iaddl 1, %eax  			 		# else counter++
+L1:
+	mrmovl 8(%ebx), %esi    # tmp0 = src[2]
+	andl %edi, %edi         # if tmp1 <= 0
+	rmmovl %edi, 4(%ecx)    # dst[1] = tmp1
+	jle L2                  # skip increasing counter
+	iaddl 1, %eax  			 		# else counter++
+L2:
+	mrmovl 12(%ebx), %edi   # tmp1 = src[3]
+	andl %esi, %esi         # if tmp0 <= 0
+	rmmovl %esi, 8(%ecx)    # dst[2] = tmp0
+	jle L3                  # skip increasing counter
+	iaddl 1, %eax  			 		# else counter++
+L3:
+	mrmovl 16(%ebx), %esi   # tmp0 = src[4]
+	andl %edi, %edi         # if tmp1 <= 0
+	rmmovl %edi, 12(%ecx)   # dst[3] = tmp1
+	jle L4                  # skip increasing counter
+	iaddl 1, %eax  			 		# else counter++
+L4:
+	mrmovl 20(%ebx), %edi   # tmp1 = src[5]
+	andl %esi, %esi         # if tmp0 <= 0
+	rmmovl %esi, 16(%ecx)   # dst[4] = tmp0
+	jle L5                  # skip increasing counter
+	iaddl 1, %eax  			 		# else counter++
+L5:
+	mrmovl 24(%ebx), %esi   # tmp0 = src[6]
+	andl %edi, %edi         # if tmp1 <= 0
+	rmmovl %edi, 20(%ecx)   # dst[5] = tmp1
+	jle L6                  # skip increasing counter
+	iaddl 1, %eax  			 		# else counter++
+L6:
+	andl %esi, %esi         # if tmp0 <= 0
+	rmmovl %esi, 24(%ecx)   # dst[6] = tmp0
+	jle ChkCond             # skip increasing counter
+	iaddl 1, %eax  			 		# else counter++
+ChkCond:
+	iaddl 28, %ebx					# src += 7 * sizeof(Byte)
+	iaddl 28, %ecx 					# dst += 7 * sizeof(Byte)
+	iaddl -7, %edx          # len -= 7
+	jg L0                   # if len > 0, goto L0
+
+S06:				 							# len in (x-6: [0, 6] -> [-6, 0])
+	iaddl 3, %edx						# (x-6: [0, 6] -> [-6, 0]) => (x-3: [0, 6] -> [-3, 3])
+	jg S46                  # len-3 > 0, len in [4, 6]
+	je R3  									# len-3 == 0, len = 3
+S02:											# len in (x-3: [0, 2] -> [-3, -1])
+	iaddl 2, %edx           # (x-3: [0, 2] -> [-3, -1]) => (x-1: [0, 2] -> [-1, 1])
+	jl R0                   # len-1 < 0, len = 0
+	je R1                   # len-1 == 0, len = 1
+	jmp R2                  # len-1 > 0, len = 2
+S46:											# len in (x-3: [4, 6] -> [1, 3])
+	iaddl -2, %edx          # (x-3: [4, 6] -> [1, 3]) => (x-5: [4, 6] -> [-1, 1])
+	jl R4                   # len-5 < 0, len = 4
+	je R5                   # len-5 == 0, len = 5
+
+R6:
+	mrmovl 20(%ebx), %esi   # tmp = src[6]
+	andl %esi, %esi         # if tmp <= 0
+	rmmovl %esi, 20(%ecx)   # dst[6] = tmp
+	jle R5 									# skip increasing counter
+	iaddl 1, %eax 					# else counter++
+R5:
+	mrmovl 16(%ebx), %esi   # tmp = src[5]
+	andl %esi, %esi         # if tmp <= 0
+	rmmovl %esi, 16(%ecx)   # dst[5] = tmp
+	jle R4 									# skip increasing counter
+	iaddl 1, %eax 					# else counter++
+R4:
+	mrmovl 12(%ebx), %esi   # tmp = src[4]
+	andl %esi, %esi         # if tmp <= 0
+	rmmovl %esi, 12(%ecx)   # dst[4] = tmp
+	jle R3 									# skip increasing counter
+	iaddl 1, %eax 					# else counter++
+R3:
+	mrmovl 8(%ebx), %esi    # tmp = src[3]
+	andl %esi, %esi         # if tmp <= 0
+	rmmovl %esi, 8(%ecx)    # dst[3] = tmp
+	jle R2 									# skip increasing counter
+	iaddl 1, %eax 					# else counter++
+R2:
+	mrmovl 4(%ebx), %esi    # tmp = src[2]
+	andl %esi, %esi         # if tmp <= 0
+	rmmovl %esi, 4(%ecx)    # dst[2] = tmp
+	jle R1 									# skip increasing counter
+	iaddl 1, %eax 					# else counter++
+R1:
+	mrmovl (%ebx), %esi     # tmp = src[1]
+	andl %esi, %esi         # if tmp <= 0
+	rmmovl %esi, (%ecx)     # dst[1] = tmp
+	jle R0 									# skip increasing counter
+	iaddl 1, %eax 					# else counter++
+R0:
+
 ##################################################################
 # Do not modify the following section of code
 # Function epilogue.
