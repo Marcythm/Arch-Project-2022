@@ -3,7 +3,7 @@ CFLAGS=-Wall -O2
 LCFLAGS=-O2
 LEX = flex
 YACC=bison
-LEXLIB = -ll
+LEXLIB = -lfl
 YAS=./yas
 
 all: yis yas hcl2c
