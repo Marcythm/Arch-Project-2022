@@ -24,6 +24,7 @@ main:
     call    copy_block
     ret
 copy_block:
+    pushl   %ebx            # save %ebx
     irmovl  0, %eax         # initialize checksum: `result = 0`
     jmp     check_condition # jump into loop, and check loop condition first: `while (ls)`
 L3:
@@ -38,6 +39,7 @@ L3:
 check_condition:
     andl    %edx, %edx      # check if `len` is greater than zero: `while (len > 0)`
     jg      L3              # if not, continue to loop
+    popl    %ebx            # restore %ebx
     ret
 
 .pos 0x100
